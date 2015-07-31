@@ -63,7 +63,7 @@ class LocalFSEventHandler(FileSystemEventHandler):
         self.on_change = on_change
 
     def on_any_event(self, evt):
-        is_git_dir = '.git' in os.path.split(evt.src_path)
+        is_git_dir = '.git' in evt.src_path.split(os.path.sep)
         is_dot_file = os.path.basename(evt.src_path).startswith('.')
         is_dir_modified = evt.event_type == 'modified' and evt.is_directory
 
