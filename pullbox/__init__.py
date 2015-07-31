@@ -185,8 +185,6 @@ class Pullbox(object):
         try:
             os.chdir(self.path)
 
-            self.invoke_process('git add .')
-
             dt = datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%S')
             msg = 'auto commit at %s' % dt
             self.invoke_process('git commit -a -m "%s"' % msg, ignore_code=1)
