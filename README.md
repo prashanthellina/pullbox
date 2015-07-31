@@ -58,15 +58,17 @@ to setup password-less SSH login to `prashanth@example.com` (instructions
 `Pullbox` depends on password-less login, so make sure it is working before
 proceeding.
 
-Let us assume that you local directory that you want to sync exists at
-`/home/prashanth/notes`. You can run `Pullbox` manually by running the
+Let us assume that your local directory that you want to sync is
+`/home/prashanth/notes`. Make sure that this directory is *not* present
+the very first time you start `Pullbox`. This allows `Pullbox` to clone
+the remote repo properly. You can run `Pullbox` manually by running the
 following command.
 
 ```bash
 pullbox --log-level DEBUG /home/prashanth/notes prashanth@example.com
 ```
 
-That is right. Your directory will now be kept in sync with the remote
+That's it! Your directory will now be kept in sync with the remote
 server repo as long as the `pullbox` command above runs. In order to have
 the command run all the time (after system reboot and upon accidental
 killing etc), put an entry in crontab like so

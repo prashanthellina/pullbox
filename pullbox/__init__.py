@@ -210,10 +210,6 @@ class Pullbox(object):
         self.ensure_remote_repo()
 
         # ensure local repo has latest data from server
-        # FIXME: fails when
-        # * local path exists and
-        #   * is not a git repo
-        #   * is a different git repo
         self.pull_changes()
 
         # start listening for changes in local repo
