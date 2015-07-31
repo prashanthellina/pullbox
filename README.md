@@ -74,5 +74,5 @@ the command run all the time (after system reboot and upon accidental
 killing etc), put an entry in crontab like so
 
 ```bash
-* * * * * pullbox --log-level DEBUG --log /tmp/pullbox.log --quiet /home/prashanth/notes prashanth@example.com &> /dev/null
+* * * * * /usr/local/bin/pullbox --log-level DEBUG --log /tmp/pullbox.log --quiet /home/prashanth/notes prashanth@example.com &> /dev/null
 ```
