@@ -37,7 +37,7 @@ long-polling except we use SSH here instead of HTTP).
 
 ### Backup Server
 
-Instructions show below assume Ubuntu Linux. You can modify based on the
+Instructions shown below assume Ubuntu Linux. You can modify based on the
 actual distro you have. Let us say the domain name of the backup server is
 `example.com`
 
