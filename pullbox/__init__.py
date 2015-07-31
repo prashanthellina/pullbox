@@ -167,7 +167,7 @@ class Pullbox(object):
         self.next_pull_at = time.time()
 
     def init_local_repo(self):
-        bpath = os.path.dirname(self.path.strip(os.path.sep))
+        bpath = os.path.dirname(self.path.rstrip(os.path.sep))
 
         if not os.path.exists(bpath):
             os.makedirs(bpath)
