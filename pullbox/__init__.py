@@ -176,6 +176,12 @@ class Pullbox(object):
         try:
             os.chdir(bpath)
             self.invoke_process('git clone %s:%s' % (self.server, self.dirname))
+            # add a dummy file to avoid trouble
+            os.chdir(self.path)
+            self.invoke_process('touch README.md')
+            self.invoke_process('git add README.md')
+            self.invoke_process('git commit -a -m "initial"')
+            self.invoke_process('git push origin master')
         finally:
             os.chdir(cwd)
 
