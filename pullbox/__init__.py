@@ -37,7 +37,7 @@ class PullboxCalledProcessError(PullboxException):
 
 LOG_FORMATTER = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 LOG_DEFAULT_FNAME = 'log.pullbox'
-MAX_LOG_FILE_SIZE = 100 * 1024 * 1024 # 100MB
+MAX_LOG_FILE_SIZE = 10 * 1024 * 1024 # 10MB
 
 def init_logger(fname, log_level, quiet=False):
     log = logging.getLogger('')
