@@ -175,7 +175,7 @@ class Pullbox(object):
         cwd = os.getcwd()
         try:
             os.chdir(bpath)
-            invoke_process('git clone %s:%s' % (self.server, self.dirname))
+            self.invoke_process('git clone %s:%s' % (self.server, self.dirname))
         finally:
             os.chdir(cwd)
 
