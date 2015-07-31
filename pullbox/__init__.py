@@ -4,7 +4,6 @@ import time
 import shlex
 import logging
 import logging.handlers
-import getpass
 import tempfile
 import datetime
 import argparse
@@ -64,7 +63,7 @@ class LocalFSEventHandler(FileSystemEventHandler):
         self.on_change = on_change
 
     def on_any_event(self, evt):
-        is_git_dir = '/.git' in evt.src_path
+        is_git_dir = '.git' in os.path.split(evt.src_path)
         is_dot_file = os.path.basename(evt.src_path).startswith('.')
         is_dir_modified = evt.event_type == 'modified' and evt.is_directory
 
@@ -79,10 +78,9 @@ class Pullbox(object):
     # server for data changes (if any)
     POLL_INTERVAL = 60 # seconds
 
-    def __init__(self, server, path, username, log):
+    def __init__(self, server, path, log):
         self.server = server
         self.path = path
-        self.username = username
         self.log = log
 
         self.dirname = os.path.basename(path.rstrip(os.path.sep))
@@ -129,7 +127,7 @@ class Pullbox(object):
             ', '.join(self.BINARIES_NEEDED_REMOTE))
 
         for binf in self.BINARIES_NEEDED_REMOTE:
-            cmd = 'ssh %s@%s which %s' % (self.username, self.server, binf)
+            cmd = 'ssh %s which %s' % (self.server, binf)
             try:
                 self.invoke_process(cmd)
             except PullboxCalledProcessError:
@@ -140,7 +138,7 @@ class Pullbox(object):
     def ensure_remote_repo(self):
         # git init creates a new repo if none exists else
         # "reinitializes" which is like a no-op for our purposes
-        cmd = 'ssh %s@%s git init --bare %s' % (self.username, self.server,
+        cmd = 'ssh %s git init --bare %s' % (self.server,
             self.dirname)
         self.invoke_process(cmd)
 
@@ -163,8 +161,8 @@ class Pullbox(object):
             time.sleep(wait)
 
     def track_remote_changes(self):
-        cmd = 'ssh %s@%s inotifywait -rqq -e modify -e move -e create -e delete %s' % \
-            (self.username, self.server, self.dirname)
+        cmd = 'ssh %s inotifywait -rqq -e modify -e move -e create -e delete %s' % \
+            (self.server, self.dirname)
         self.invoke_process(cmd)
         self.next_pull_at = time.time()
 
@@ -214,6 +212,10 @@ class Pullbox(object):
         self.ensure_remote_repo()
 
         # ensure local repo has latest data from server
+        # FIXME: fails when
+        # * local path exists and
+        #   * is not a git repo
+        #   * is a different git repo
         self.pull_changes()
 
         # start listening for changes in local repo
@@ -238,9 +240,6 @@ def main():
     parser.add_argument('path', help='Path to data directory')
     parser.add_argument('server', help='IP/Domain name of backup server')
 
-    parser.add_argument('--username', default=getpass.getuser(),
-        help='Username to use when logging into server')
-
     parser.add_argument('--log', default=LOG_DEFAULT_FNAME,
         help='Name of log file')
     parser.add_argument('--log-level', default='WARNING',
@@ -256,7 +255,7 @@ def main():
     try:
         with lock.acquire(timeout=0):
             log = init_logger(args.log, args.log_level, quiet=args.quiet)
-            p = Pullbox(args.server, args.path, args.username, log)
+            p = Pullbox(args.server, args.path, log)
             p.start()
     except (SystemExit, KeyboardInterrupt): sys.exit(1)
     except Exception, e:
