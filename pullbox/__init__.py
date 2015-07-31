@@ -80,7 +80,7 @@ class Pullbox(object):
 
     def __init__(self, server, path, log):
         self.server = server
-        self.path = path
+        self.path = os.path.abspath(path)
         self.log = log
 
         self.dirname = os.path.basename(path.rstrip(os.path.sep))
@@ -166,8 +166,24 @@ class Pullbox(object):
         self.invoke_process(cmd)
         self.next_pull_at = time.time()
 
+    def init_local_repo(self):
+        bpath = os.path.dirname(self.path.strip(os.path.sep))
+
+        if not os.path.exists(bpath):
+            os.makedirs(bpath)
+
+        cwd = os.getcwd()
+        try:
+            os.chdir(bpath)
+            invoke_process('git clone %s:%s' % (self.server, self.dirname))
+        finally:
+            os.chdir(cwd)
+
     def pull_changes(self):
         if self.next_pull_at > time.time(): return
+
+        if not os.path.exists(self.path):
+            self.init_local_repo()
 
         cwd = os.getcwd()
         try:
