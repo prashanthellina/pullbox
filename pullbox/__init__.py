@@ -83,7 +83,7 @@ class Pullbox(object):
         self.path = os.path.abspath(path)
         self.log = log
 
-        self.dirname = os.path.basename(path.rstrip(os.path.sep))
+        self.remote_name = os.path.basename(path.rstrip(os.path.sep))+".git"
 
         # Setup monitoring of local repo changes
         self.fs_observer = Observer()
@@ -139,7 +139,7 @@ class Pullbox(object):
         # git init creates a new repo if none exists else
         # "reinitializes" which is like a no-op for our purposes
         cmd = 'ssh %s git init --bare %s' % (self.server,
-            self.dirname)
+            self.remote_name)
         self.invoke_process(cmd)
 
     def keeprunning(self, fn, wait=0, error_wait=1):
@@ -162,7 +162,7 @@ class Pullbox(object):
 
     def track_remote_changes(self):
         cmd = 'ssh %s inotifywait -rqq -e modify -e move -e create -e delete %s' % \
-            (self.server, self.dirname)
+            (self.server, self.remote_name)
         self.invoke_process(cmd)
         self.next_pull_at = time.time()
 
@@ -175,7 +175,7 @@ class Pullbox(object):
         cwd = os.getcwd()
         try:
             os.chdir(bpath)
-            self.invoke_process('git clone %s:%s' % (self.server, self.dirname))
+            self.invoke_process('git clone %s:%s' % (self.server, self.remote_name))
             # add a dummy file to avoid trouble
             os.chdir(self.path)
             self.invoke_process('touch README.md')
