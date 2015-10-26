@@ -78,13 +78,14 @@ class Pullbox(object):
     # server for data changes (if any)
     POLL_INTERVAL = 60 # seconds
 
-    def __init__(self, server, path, log):
+    def __init__(self, server, path, log, suffix):
         self.server = server
         self.path = os.path.abspath(path)
         self.log = log
 
-        self.dirname = os.path.basename(path.rstrip(os.path.sep))
-
+        self.remote_name = os.path.basename(path.rstrip(os.path.sep))
+        if suffix:
+            self.remote_name += ".git"
         # Setup monitoring of local repo changes
         self.fs_observer = Observer()
         self.fs_observer.schedule(LocalFSEventHandler(self.on_fs_change),
@@ -139,8 +140,9 @@ class Pullbox(object):
         # git init creates a new repo if none exists else
         # "reinitializes" which is like a no-op for our purposes
         cmd = 'ssh %s git init --bare %s' % (self.server,
-            self.dirname)
+            self.remote_name)
         self.invoke_process(cmd)
+            
 
     def keeprunning(self, fn, wait=0, error_wait=1):
         '''
@@ -162,7 +164,7 @@ class Pullbox(object):
 
     def track_remote_changes(self):
         cmd = 'ssh %s inotifywait -rqq -e modify -e move -e create -e delete %s' % \
-            (self.server, self.dirname)
+            (self.server, self.remote_name)
         self.invoke_process(cmd)
         self.next_pull_at = time.time()
 
@@ -175,7 +177,7 @@ class Pullbox(object):
         cwd = os.getcwd()
         try:
             os.chdir(bpath)
-            self.invoke_process('git clone %s:%s' % (self.server, self.dirname))
+            self.invoke_process('git clone %s:%s' % (self.server, self.remote_name))
             # add a dummy file to avoid trouble
             os.chdir(self.path)
             self.invoke_process('touch README.md')
@@ -256,7 +258,8 @@ def main():
 
     parser.add_argument('path', help='Path to data directory')
     parser.add_argument('server', help='IP/Domain name of backup server')
-
+    parser.add_argument('--standard-suffix', action='store_true',
+        help='Makes Pullbox use the standard .git suffix for bare git repos (server side only)')
     parser.add_argument('--log', default=LOG_DEFAULT_FNAME,
         help='Name of log file')
     parser.add_argument('--log-level', default='WARNING',
@@ -272,7 +275,7 @@ def main():
     try:
         with lock.acquire(timeout=0):
             log = init_logger(args.log, args.log_level, quiet=args.quiet)
-            p = Pullbox(args.server, args.path, log)
+            p = Pullbox(args.server, args.path, log, args.standard_suffix)
             p.start()
     except (SystemExit, KeyboardInterrupt): sys.exit(1)
     except Exception, e:
